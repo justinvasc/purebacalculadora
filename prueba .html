@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GEOCALCULATOR</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/14.0.1/math.js"></script>
+    <style>
+        body {
+            font-family: Times New Roman, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-image: url('fondo.jpg'); /* Ruta de la imagen de fondo */
+            background-size: cover;
+            background-position: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: auto;
+            opacity: 0.9;
+        }
+        input, select, button {
+            margin: 10px;
+            padding: 10px;
+            width: 80%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>GEOCALCULATOR</h1>
+        <input type="number" id="x_pred" placeholder="Ingrese valor de X">
+        <input type="number" id="y_pred" placeholder="Ingrese valor de Y">
+        <br>
+        <button onclick="realizarCalculo()">Calcular</button>
+        <h2>Altura Calculada: <span id="resultado">-</span></h2>
+    </div>
+
+    <script>
+        async function loadMatrix() {
+            const response = await fetch("datosjustin.txt");
+            const text = await response.text();
+            return text.trim().split("\n").map(line => line.split(",").map(Number));
+        }
+
+        async function realizarCalculo() {
+            let matriz = await loadMatrix();
+            let x = matriz.map(row => row[1]);
+            let y = matriz.map(row => row[2]);
+            let cad = matriz.map(row => row[3]);
+            
+            let x_pred = parseFloat(document.getElementById("x_pred").value);
+            let y_pred = parseFloat(document.getElementById("y_pred").value);
+            
+            let X = x.map((val, i) => [1, x[i], y[i]]);
+            let XTX = math.multiply(math.transpose(X), X);
+            let XTY = math.multiply(math.transpose(X), cad);
+            let b = math.lusolve(XTX, XTY).flat();
+            let L = [1, x_pred, y_pred].reduce((sum, val, i) => sum + val * b[i], 0);
+            
+            document.getElementById("resultado").innerText = L.toFixed(4);
+        }
+    </script>
+</body>
+</html>
+
